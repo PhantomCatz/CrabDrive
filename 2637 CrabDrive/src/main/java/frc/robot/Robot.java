@@ -4,10 +4,14 @@
 
 package frc.robot;
 
+import java.util.ArrayList;
+
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
-import frc.Mechanisms.Drivetrain;
-import frc.Mechanisms.Driving;
+import frc.DataLogger.CatzLog;
+import frc.DataLogger.DataCollection;
+import frc.Mechanisms.CatzDrivetrain;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -17,8 +21,14 @@ import frc.Mechanisms.Driving;
  */
 public class Robot extends TimedRobot {
   
-  public Drivetrain drivetrain;
-  public Driving driving;
+  public CatzDrivetrain drivetrain;
+  
+  public static DataCollection dataCollection;
+  public static Timer currentTime;
+  public ArrayList<CatzLog> dataArrayList;
+  
+
+
 
   private XboxController xboxDrv;
 
@@ -31,8 +41,14 @@ public class Robot extends TimedRobot {
   {
     xboxDrv = new XboxController(0);
 
-    drivetrain = new Drivetrain();
-    driving = new Driving();
+    drivetrain = new CatzDrivetrain();
+    dataCollection = new DataCollection();
+
+    dataArrayList = new ArrayList<CatzLog>();
+    dataCollection.dataCollectionInit(dataArrayList);
+
+
+    currentTime = new Timer();
   }
 
   /**
@@ -46,6 +62,8 @@ public class Robot extends TimedRobot {
   public void robotPeriodic()
   {
     drivetrain.updateShuffleboard();
+
+    //drivetrain.testAngle();
   }
 
   /**
@@ -74,6 +92,10 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() 
   {
+    currentTime.reset();
+    currentTime.start();
+    dataCollection.setLogDataID(dataCollection.LOG_ID_SWERVE_MODULE);
+    dataCollection.startDataCollection();
     drivetrain.setBrakeMode();
   }
 
@@ -90,14 +112,27 @@ public class Robot extends TimedRobot {
       drivetrain.setSteerPower(0.0);
       drivetrain.setDrivePower(0.0);
     }
-    //steering.setWheelRotation(180);
   }
 
   /** This function is called once when the robot is disabled. */
   @Override
-  public void disabledInit() {
-
+  public void disabledInit()
+  {
+    currentTime.stop();
     drivetrain.setCoastMode();
+    if(dataCollection.logDataValues == true)
+    {
+      dataCollection.stopDataCollection();
+
+      try 
+      {
+        dataCollection.exportData(dataArrayList);
+      } 
+      catch (Exception e) 
+      {
+        e.printStackTrace();
+      }
+    }
   }
 
   /** This function is called periodically when disabled. */
