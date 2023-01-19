@@ -62,6 +62,7 @@ public class CatzSwerveModule
     {
         SmartDashboard.putNumber(motorID + " Mag Encoder", magEnc.get() * 360.0);
         SmartDashboard.putNumber(motorID + " Wheel Angle", ((magEnc.get() - WHEEL_OFFSET) * 360.0));
+        SmartDashboard.putBoolean(motorID + " Flipped", driveDirectionFlipped);
     }
 
     public void resetMagEnc()
@@ -87,6 +88,10 @@ public class CatzSwerveModule
         if (Math.abs(dir) > 180.0)
         {
                 dir = -(Math.signum(dir) * 360.0) + dir;
+                if(dir > 180.0)
+                {
+                    dir -= 360;
+                }
         }
 
         return dir;

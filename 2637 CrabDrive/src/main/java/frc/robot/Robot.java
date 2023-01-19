@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.DataLogger.CatzLog;
 import frc.DataLogger.DataCollection;
 import frc.Mechanisms.CatzDrivetrain;
@@ -31,6 +32,9 @@ public class Robot extends TimedRobot {
 
 
   private XboxController xboxDrv;
+  private double steerAngle = 0.0;
+  private double drivePower = 0.0;
+  private double turnPower = 0.0;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -62,6 +66,7 @@ public class Robot extends TimedRobot {
   public void robotPeriodic()
   {
     drivetrain.updateShuffleboard();
+    SmartDashboard.putNumber("Joystick", steerAngle);
 
     //drivetrain.testAngle();
   }
@@ -103,9 +108,24 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic()
   {
-    if(Math.abs(xboxDrv.getLeftX()) > 0.2 || Math.abs(xboxDrv.getLeftY()) > 0.2)
+    steerAngle = calcJoystickAngle(xboxDrv.getLeftX(), xboxDrv.getLeftY());
+    drivePower = calcJoystickPower(xboxDrv.getLeftX(), xboxDrv.getLeftY());
+    turnPower = xboxDrv.getRightX();
+
+    if(drivePower >= 0.2)
     {
-      drivetrain.drive(xboxDrv.getLeftX(), xboxDrv.getLeftY());
+      if(Math.abs(turnPower) >= 0.2)
+      {
+        drivetrain.translateTurn(steerAngle, drivePower, turnPower);
+      }
+      else
+      {
+        drivetrain.drive(steerAngle, drivePower);
+      }
+    }
+    else if(Math.abs(turnPower) >= 0.2)
+    {
+      drivetrain.rotateInPlace(turnPower);
     }
     else
     {
@@ -156,4 +176,41 @@ public class Robot extends TimedRobot {
   /** This function is called periodically whilst in simulation. */
   @Override
   public void simulationPeriodic() {}
+
+
+
+  public double calcJoystickAngle(double xJoy, double yJoy)
+    {
+        double angle = Math.atan(Math.abs(xJoy) / Math.abs(yJoy));
+        angle *= (180 / Math.PI);
+
+        if(yJoy <= 0)   //joystick pointed up
+        {
+            if(xJoy < 0)    //joystick pointed left
+            {
+                //no change
+            }
+            if(xJoy >= 0)   //joystick pointed right
+            {
+                angle = -angle;
+            }
+        }
+        else    //joystick pointed down
+        {
+            if(xJoy < 0)    //joystick pointed left
+            {
+                angle = 180 - angle;
+            }
+            if(xJoy >= 0)   //joystick pointed right
+            {
+                angle = -180 + angle;
+            }
+        }
+        return angle;
+    }
+
+    public double calcJoystickPower(double xJoy, double yJoy)
+    {
+      return (Math.sqrt(Math.pow(xJoy, 2) + Math.pow(yJoy, 2)));
+    }
 }

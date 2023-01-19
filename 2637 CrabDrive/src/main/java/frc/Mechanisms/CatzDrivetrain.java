@@ -25,15 +25,13 @@ public class CatzDrivetrain
 
     private final int LT_FRNT_ENC_PORT = 9;
     private final int LT_BACK_ENC_PORT = 6;
-    private final int RT_FRNT_ENC_PORT = 8;
     private final int RT_BACK_ENC_PORT = 7;
+    private final int RT_FRNT_ENC_PORT = 8;
 
     private final double LT_FRNT_OFFSET = 0.012;
     private final double LT_BACK_OFFSET = -0.627;
-    private final double RT_FRNT_OFFSET = 0.668;
     private final double RT_BACK_OFFSET = 0.072;
-
-    private double joystickAngle;
+    private final double RT_FRNT_OFFSET = 0.668;
 
     public CatzDrivetrain()
     {
@@ -44,38 +42,29 @@ public class CatzDrivetrain
 
         navX = new AHRS();
         navX.reset();
-
+ 
         LT_FRNT_MODULE.resetMagEnc();
         LT_BACK_MODULE.resetMagEnc();
         RT_FRNT_MODULE.resetMagEnc();
         RT_BACK_MODULE.resetMagEnc();
     }
 
-    public void testAngle()
+    public void drive(double joystickAngle, double joystickPower)
     {
-        System.out.println("Positive: " + LT_FRNT_MODULE.closestAngle(359.0, 361.0));
-
-        System.out.println("Negative: " + LT_FRNT_MODULE.closestAngle(-359.0, -361.0));
-    }
-
-    public void drive(double xJoy, double yJoy)
-    {
-        joystickAngle = calculateJoystickAngle(xJoy, yJoy);
-
-        //LT_FRNT_MODULE.setWheelRotation(joystickAngle);
-        //LT_BACK_MODULE.setWheelRotation(joystickAngle);
-        //RT_FRNT_MODULE.setWheelRotation(joystickAngle);
+        LT_FRNT_MODULE.setWheelRotation(joystickAngle);
+        LT_BACK_MODULE.setWheelRotation(joystickAngle);
+        RT_FRNT_MODULE.setWheelRotation(joystickAngle);
         RT_BACK_MODULE.setWheelRotation(joystickAngle);
 
-        setDrivePower(Math.sqrt(Math.pow(xJoy, 2) + Math.pow(yJoy, 2)));
+        setDrivePower(joystickPower);
     }
 
     public void rotateInPlace(double pwr)
     {
         LT_FRNT_MODULE.setWheelRotation(135.0);
         LT_BACK_MODULE.setWheelRotation(45.0);
-        RT_FRNT_MODULE.setWheelRotation(315.0);
-        RT_BACK_MODULE.setWheelRotation(225.0);
+        RT_FRNT_MODULE.setWheelRotation(-45.0);
+        RT_BACK_MODULE.setWheelRotation(-135.0);
 
         pwr *= 0.6;
 
@@ -135,37 +124,6 @@ public class CatzDrivetrain
         RT_FRNT_MODULE.setDrivePower(translatePower);
         RT_BACK_MODULE.setDrivePower(translatePower);
     }
-    
-
-    public double calculateJoystickAngle(double xJoy, double yJoy)
-    {
-        double angle = Math.atan(Math.abs(xJoy) / Math.abs(yJoy));
-        angle *= (180 / Math.PI);
-
-        if(yJoy <= 0)   //joystick pointed up
-        {
-            if(xJoy < 0)    //joystick pointed left
-            {
-                //no change
-            }
-            if(xJoy >= 0)   //joystick pointed right
-            {
-                angle = -angle;
-            }
-        }
-        else    //joystick pointed down
-        {
-            if(xJoy < 0)    //joystick pointed left
-            {
-                angle = 180 - angle;
-            }
-            if(xJoy >= 0)   //joystick pointed right
-            {
-                angle = -180 + angle;
-            }
-        }
-        return angle;
-    }
 
     public double getGyroAngle()
     {
@@ -205,8 +163,6 @@ public class CatzDrivetrain
 
     public void updateShuffleboard()
     {
-        SmartDashboard.putNumber("Joystick", joystickAngle);
-
         LT_FRNT_MODULE.updateShuffleboard();
         LT_BACK_MODULE.updateShuffleboard();
         RT_FRNT_MODULE.updateShuffleboard();
