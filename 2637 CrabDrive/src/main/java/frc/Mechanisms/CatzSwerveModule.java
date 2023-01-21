@@ -2,6 +2,7 @@ package frc.Mechanisms;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -36,12 +37,23 @@ public class CatzSwerveModule
 
     private final double WHEEL_OFFSET;
 
-    public CatzLog data;
+    //current limiting
+    private SupplyCurrentLimitConfiguration swerveModuleCurrentLimit;
+    private final int     CURRENT_LIMIT_AMPS            = 55;
+    private final int     CURRENT_LIMIT_TRIGGER_AMPS    = 55;
+    private final double  CURRENT_LIMIT_TIMEOUT_SECONDS = 0.5;
+    private final boolean ENABLE_CURRENT_LIMIT          = true;
 
     public CatzSwerveModule(int driveMotorID, int steerMotorID, int encoderID, double offset)
     {
         STEERING_MOTOR = new WPI_TalonFX(steerMotorID);
         DRIVE_MOTOR = new WPI_TalonFX(driveMotorID);
+
+        //Set current limit
+        swerveModuleCurrentLimit = new SupplyCurrentLimitConfiguration(ENABLE_CURRENT_LIMIT, CURRENT_LIMIT_AMPS, CURRENT_LIMIT_TRIGGER_AMPS, CURRENT_LIMIT_TIMEOUT_SECONDS);
+
+        STEERING_MOTOR.configSupplyCurrentLimit(swerveModuleCurrentLimit);
+        DRIVE_MOTOR.configSupplyCurrentLimit(swerveModuleCurrentLimit);
 
         STEERING_MOTOR.configFactoryDefault();
         DRIVE_MOTOR.configFactoryDefault();
@@ -60,9 +72,9 @@ public class CatzSwerveModule
     }
     public void updateShuffleboard()
     {
-        SmartDashboard.putNumber(motorID + " Mag Encoder", magEnc.get() * 360.0);
+        SmartDashboard.putNumber(motorID + " Mag Encoder", magEnc.get() );//* 360.0);
         SmartDashboard.putNumber(motorID + " Wheel Angle", ((magEnc.get() - WHEEL_OFFSET) * 360.0));
-        SmartDashboard.putBoolean(motorID + " Flipped", driveDirectionFlipped);
+        //SmartDashboard.putBoolean(motorID + " Flipped", driveDirectionFlipped);
     }
 
     public void resetMagEnc()
@@ -88,6 +100,7 @@ public class CatzSwerveModule
         if (Math.abs(dir) > 180.0)
         {
                 dir = -(Math.signum(dir) * 360.0) + dir;
+                //closest angle shouldn't be more than 180 degrees. If it is, use other direction
                 if(dir > 180.0)
                 {
                     dir -= 360;
@@ -100,33 +113,27 @@ public class CatzSwerveModule
     public void setWheelRotation(double target)
     {
         currentAngle = (magEnc.get() - WHEEL_OFFSET) * 360.0;
-        // find closest angle to setpoint
+        // find closest angle to target angle
         angleError = closestAngle(currentAngle, target);
-        SmartDashboard.putNumber(motorID + " Angle Error", angleError);
-        // find closest angle to setpoint + 180
+        //SmartDashboard.putNumber(motorID + " Angle Error", angleError);
+        // find closest angle to target angle + 180
         flippedAngleError = closestAngle(currentAngle, target + 180.0);
-        SmartDashboard.putNumber(motorID + " Flip Angle Error", flippedAngleError);
-        // if the closest angle to setpoint is shorter
+        //SmartDashboard.putNumber(motorID + " Flip Angle Error", flippedAngleError);
+        // if the closest angle to target is shorter
         if (Math.abs(angleError) <= Math.abs(flippedAngleError))
         {
-            // unflip the motor direction use the setpoint
             driveDirectionFlipped = false;
             command = pid.calculate(currentAngle, currentAngle + angleError);
         }
-        // if the closest angle to setpoint + 180 is shorter
+        // if the closest angle to target + 180 is shorter
         else
         {
-            // flip the motor direction and use the setpoint + 180
             driveDirectionFlipped = true;
             command = pid.calculate(currentAngle, currentAngle + flippedAngleError);
         }
 
         command = -command / (180 * kP); //scale down command to a range of -1 to 1
         STEERING_MOTOR.set(ControlMode.PercentOutput, command);
-
-                        data = new CatzLog(Robot.currentTime.get(), currentAngle, target, angleError, flippedAngleError, command,
-                                            -999.0, -999.0, -999.0, -999.0, -999.0, -999.0, -999.0, -999.0, -999.0, 0);  
-                        Robot.dataCollection.logData.add(data);
     }
 
     public void setSteerPower(double pwr)
@@ -143,5 +150,18 @@ public class CatzSwerveModule
             pwr = -pwr;
         }
         DRIVE_MOTOR.set(ControlMode.PercentOutput, -pwr);
+    }
+    
+    public double getAngle()
+    {
+        return currentAngle;
+    }
+    public double getError()
+    {
+        return angleError;
+    }
+    public double getFlipError()
+    {
+        return flippedAngleError;
     }
 }

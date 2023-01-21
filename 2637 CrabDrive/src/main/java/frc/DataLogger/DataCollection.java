@@ -45,7 +45,7 @@ public class DataCollection
 
     public boolean validLogID = true;
 
-    private final String LOG_HDR_SWERVE_MOD = "time,angle,target,err,flip-err,cmd";
+    private final String LOG_HDR_SWERVE_MOD = "time,target,lf-angle,lf-err,lf-flip-err,lb-angle,lb-err,lb-flip-err,rf-angle,rf-err,rf-flip-err,rb-angle,rb-err,rb-flip-err";
     public String logStr;
 
     public static final SendableChooser<Integer> chosenDataID = new SendableChooser<>();
