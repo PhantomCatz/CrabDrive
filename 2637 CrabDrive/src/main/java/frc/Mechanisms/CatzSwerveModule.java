@@ -73,7 +73,7 @@ public class CatzSwerveModule
     public void updateShuffleboard()
     {
         SmartDashboard.putNumber(motorID + " Mag Encoder", magEnc.get() );//* 360.0);
-        SmartDashboard.putNumber(motorID + " Wheel Angle", ((magEnc.get() - WHEEL_OFFSET) * 360.0));
+        SmartDashboard.putNumber(motorID + " Wheel Angle", (currentAngle));
         //SmartDashboard.putBoolean(motorID + " Flipped", driveDirectionFlipped);
     }
 
@@ -110,9 +110,9 @@ public class CatzSwerveModule
         return dir;
     }
 
-    public void setWheelRotation(double target)
+    public void setWheelRotation(double target, double gyroAngle)
     {
-        currentAngle = (magEnc.get() - WHEEL_OFFSET) * 360.0;
+        currentAngle = ((magEnc.get() - WHEEL_OFFSET) * 360.0) - gyroAngle;
         // find closest angle to target angle
         angleError = closestAngle(currentAngle, target);
         //SmartDashboard.putNumber(motorID + " Angle Error", angleError);
@@ -152,6 +152,10 @@ public class CatzSwerveModule
         DRIVE_MOTOR.set(ControlMode.PercentOutput, -pwr);
     }
     
+    public double getEncValue()
+    {
+        return magEnc.get();
+    }
     public double getAngle()
     {
         return currentAngle;

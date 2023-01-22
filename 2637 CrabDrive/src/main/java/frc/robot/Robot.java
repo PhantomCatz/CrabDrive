@@ -112,9 +112,9 @@ public class Robot extends TimedRobot {
     drivePower = calcJoystickPower(xboxDrv.getLeftX(), xboxDrv.getLeftY());
     turnPower = xboxDrv.getRightX();
 
-    if(drivePower >= 0.05)
+    if(drivePower >= 0.1)
     {
-      if(Math.abs(turnPower) >= 0.05)
+      if(Math.abs(turnPower) >= 0.1)
       {
         drivetrain.translateTurn(steerAngle, drivePower, turnPower);
       }
@@ -124,7 +124,7 @@ public class Robot extends TimedRobot {
       }
       drivetrain.dataCollection();
     }
-    else if(Math.abs(turnPower) >= 0.05)
+    else if(Math.abs(turnPower) >= 0.1)
     {
       drivetrain.rotateInPlace(turnPower);
       drivetrain.dataCollection();
@@ -165,7 +165,10 @@ public class Robot extends TimedRobot {
 
   /** This function is called once when test mode is enabled. */
   @Override
-  public void testInit() {}
+  public void testInit()
+  {
+    drivetrain.configureOffsets();
+  }
 
   /** This function is called periodically during test mode. */
   @Override
