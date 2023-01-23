@@ -167,7 +167,7 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit()
   {
-    drivetrain.configureOffsets();
+    drivetrain.resetEncOffsets();
   }
 
   /** This function is called periodically during test mode. */

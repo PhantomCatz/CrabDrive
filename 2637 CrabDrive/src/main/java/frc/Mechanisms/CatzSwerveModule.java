@@ -35,7 +35,7 @@ public class CatzSwerveModule
     private double command;
     private boolean driveDirectionFlipped = false;
 
-    private final double WHEEL_OFFSET;
+    private double WHEEL_OFFSET;
 
     //current limiting
     private SupplyCurrentLimitConfiguration swerveModuleCurrentLimit;
@@ -69,6 +69,10 @@ public class CatzSwerveModule
         motorID = steerMotorID;
 
         setCoastMode();
+    }
+    public void resetOffset()
+    {
+        WHEEL_OFFSET = getEncValue();
     }
     public void updateShuffleboard()
     {
@@ -143,7 +147,7 @@ public class CatzSwerveModule
 
     public void setDrivePower(double pwr)
     {
-        pwr *= 0.5;
+        //pwr *= 0.5;
 
         if(driveDirectionFlipped == true)
         {

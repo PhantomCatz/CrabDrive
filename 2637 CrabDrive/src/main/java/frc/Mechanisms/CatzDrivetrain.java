@@ -58,14 +58,14 @@ public class CatzDrivetrain
         RT_BACK_MODULE.resetMagEnc();
     }
 
-    public void configureOffsets()
+    public void resetEncOffsets()
     {
         navX.setAngleAdjustment(-navX.getYaw());
 
-        LT_FRNT_OFFSET = LT_FRNT_MODULE.getEncValue();
-        LT_BACK_OFFSET = LT_BACK_MODULE.getEncValue();
-        RT_BACK_OFFSET = RT_BACK_MODULE.getEncValue();
-        RT_FRNT_OFFSET = RT_FRNT_MODULE.getEncValue();
+        LT_FRNT_MODULE.resetOffset();
+        LT_BACK_MODULE.resetOffset();
+        RT_FRNT_MODULE.resetOffset();
+        RT_BACK_MODULE.resetOffset();
     }
 
     public void drive(double joystickAngle, double joystickPower)
