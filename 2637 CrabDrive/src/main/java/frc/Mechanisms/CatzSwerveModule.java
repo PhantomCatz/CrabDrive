@@ -15,13 +15,13 @@ import frc.robot.Robot;
 
 public class CatzSwerveModule
 {
-    private final WPI_TalonFX STEERING_MOTOR;
+    private final WPI_TalonFX STEER_MOTOR;
     private final WPI_TalonFX DRIVE_MOTOR;
 
     private final int motorID;
 
     private DutyCycleEncoder magEnc;
-    private DigitalInput MagEncDigitalInput;
+    private DigitalInput MagEncPWMInput;
 
     private PIDController pid;
     private final double kP = 0.01;
@@ -35,7 +35,7 @@ public class CatzSwerveModule
     private double command;
     private boolean driveDirectionFlipped = false;
 
-    private double WHEEL_OFFSET;
+    private double wheelOffset;
 
     //current limiting
     private SupplyCurrentLimitConfiguration swerveModuleCurrentLimit;
@@ -44,35 +44,35 @@ public class CatzSwerveModule
     private final double  CURRENT_LIMIT_TIMEOUT_SECONDS = 0.5;
     private final boolean ENABLE_CURRENT_LIMIT          = true;
 
-    public CatzSwerveModule(int driveMotorID, int steerMotorID, int encoderID, double offset)
+    public CatzSwerveModule(int driveMotorID, int steerMotorID, int encoderDIOChannel, double offset)
     {
-        STEERING_MOTOR = new WPI_TalonFX(steerMotorID);
+        STEER_MOTOR = new WPI_TalonFX(steerMotorID);
         DRIVE_MOTOR = new WPI_TalonFX(driveMotorID);
+
+        STEER_MOTOR.configFactoryDefault();
+        DRIVE_MOTOR.configFactoryDefault();
 
         //Set current limit
         swerveModuleCurrentLimit = new SupplyCurrentLimitConfiguration(ENABLE_CURRENT_LIMIT, CURRENT_LIMIT_AMPS, CURRENT_LIMIT_TRIGGER_AMPS, CURRENT_LIMIT_TIMEOUT_SECONDS);
 
-        STEERING_MOTOR.configSupplyCurrentLimit(swerveModuleCurrentLimit);
+        STEER_MOTOR.configSupplyCurrentLimit(swerveModuleCurrentLimit);
         DRIVE_MOTOR.configSupplyCurrentLimit(swerveModuleCurrentLimit);
 
-        STEERING_MOTOR.configFactoryDefault();
-        DRIVE_MOTOR.configFactoryDefault();
         DRIVE_MOTOR.setNeutralMode(NeutralMode.Brake);
+        STEER_MOTOR.setNeutralMode(NeutralMode.Coast);
         
-        MagEncDigitalInput = new DigitalInput(encoderID);
-        magEnc = new DutyCycleEncoder(MagEncDigitalInput);
+        MagEncPWMInput = new DigitalInput(encoderDIOChannel);
+        magEnc = new DutyCycleEncoder(MagEncPWMInput);
 
         pid = new PIDController(kP, kI, kD);
 
-        WHEEL_OFFSET = offset;
+        wheelOffset = offset;
 
         motorID = steerMotorID;
-
-        setCoastMode();
     }
-    public void resetOffset()
+    public void initializeOffset()
     {
-        WHEEL_OFFSET = getEncValue();
+        wheelOffset = getEncValue();
     }
     public void updateShuffleboard()
     {
@@ -88,41 +88,41 @@ public class CatzSwerveModule
 
     public void setBrakeMode()
     {
-        STEERING_MOTOR.setNeutralMode(NeutralMode.Brake);
+        STEER_MOTOR.setNeutralMode(NeutralMode.Brake);
     }
     public void setCoastMode()
     {
-        STEERING_MOTOR.setNeutralMode(NeutralMode.Coast);
+        STEER_MOTOR.setNeutralMode(NeutralMode.Coast);
     }
 
-    public double closestAngle(double a, double b)
+    public double closestAngle(double startAngle, double targetAngle)
     {
         // get direction
-        double dir = b % 360.0 - a % 360.0;
+        double error = targetAngle % 360.0 - startAngle % 360.0;
 
         // convert from -360 to 360 to -180 to 180
-        if (Math.abs(dir) > 180.0)
+        if (Math.abs(error) > 180.0)
         {
-                dir = -(Math.signum(dir) * 360.0) + dir;
-                //closest angle shouldn't be more than 180 degrees. If it is, use other direction
-                if(dir > 180.0)
-                {
-                    dir -= 360;
-                }
+            error = -(Math.signum(error) * 360.0) + error;
+            //closest angle shouldn't be more than 180 degrees. If it is, use other direction
+            if(error > 180.0)
+            {
+                error -= 360;
+            }
         }
 
-        return dir;
+        return error;
     }
 
-    public void setWheelRotation(double target, double gyroAngle)
+    public void setWheelAngle(double target, double gyroAngle)
     {
-        currentAngle = ((magEnc.get() - WHEEL_OFFSET) * 360.0) - gyroAngle;
+        currentAngle = ((magEnc.get() - wheelOffset) * 360.0) - gyroAngle;
         // find closest angle to target angle
         angleError = closestAngle(currentAngle, target);
-        //SmartDashboard.putNumber(motorID + " Angle Error", angleError);
+
         // find closest angle to target angle + 180
         flippedAngleError = closestAngle(currentAngle, target + 180.0);
-        //SmartDashboard.putNumber(motorID + " Flip Angle Error", flippedAngleError);
+
         // if the closest angle to target is shorter
         if (Math.abs(angleError) <= Math.abs(flippedAngleError))
         {
@@ -137,18 +137,16 @@ public class CatzSwerveModule
         }
 
         command = -command / (180 * kP); //scale down command to a range of -1 to 1
-        STEERING_MOTOR.set(ControlMode.PercentOutput, command);
+        STEER_MOTOR.set(ControlMode.PercentOutput, command);
     }
 
     public void setSteerPower(double pwr)
     {
-        STEERING_MOTOR.set(ControlMode.PercentOutput, pwr);
+        STEER_MOTOR.set(ControlMode.PercentOutput, pwr);
     }
 
     public void setDrivePower(double pwr)
     {
-        //pwr *= 0.5;
-
         if(driveDirectionFlipped == true)
         {
             pwr = -pwr;

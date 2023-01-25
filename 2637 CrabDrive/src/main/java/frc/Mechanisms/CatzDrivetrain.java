@@ -50,7 +50,7 @@ public class CatzDrivetrain
 
         navX = new AHRS();
         navX.reset();
-        navX.setAngleAdjustment(74.0);
+        navX.setAngleAdjustment(-navX.getYaw());
  
         LT_FRNT_MODULE.resetMagEnc();
         LT_BACK_MODULE.resetMagEnc();
@@ -58,22 +58,24 @@ public class CatzDrivetrain
         RT_BACK_MODULE.resetMagEnc();
     }
 
-    public void resetEncOffsets()
+    public void initializeOffsets()
     {
         navX.setAngleAdjustment(-navX.getYaw());
 
-        LT_FRNT_MODULE.resetOffset();
-        LT_BACK_MODULE.resetOffset();
-        RT_FRNT_MODULE.resetOffset();
-        RT_BACK_MODULE.resetOffset();
+        LT_FRNT_MODULE.initializeOffset();
+        LT_BACK_MODULE.initializeOffset();
+        RT_FRNT_MODULE.initializeOffset();
+        RT_BACK_MODULE.initializeOffset();
     }
 
     public void drive(double joystickAngle, double joystickPower)
     {
-        LT_FRNT_MODULE.setWheelRotation(joystickAngle, getGyroAngle());
-        LT_BACK_MODULE.setWheelRotation(joystickAngle, getGyroAngle());
-        RT_FRNT_MODULE.setWheelRotation(joystickAngle, getGyroAngle());
-        RT_BACK_MODULE.setWheelRotation(joystickAngle, getGyroAngle());
+        double gyroAngle = getGyroAngle();
+
+        LT_FRNT_MODULE.setWheelAngle(joystickAngle, gyroAngle);
+        LT_BACK_MODULE.setWheelAngle(joystickAngle, gyroAngle);
+        RT_FRNT_MODULE.setWheelAngle(joystickAngle, gyroAngle);
+        RT_BACK_MODULE.setWheelAngle(joystickAngle, gyroAngle);
 
         setDrivePower(joystickPower);
 
@@ -82,12 +84,10 @@ public class CatzDrivetrain
 
     public void rotateInPlace(double pwr)
     {
-        LT_FRNT_MODULE.setWheelRotation(-45.0, 0.0);
-        LT_BACK_MODULE.setWheelRotation(45.0, 0.0);
-        RT_FRNT_MODULE.setWheelRotation(-135.0, 0.0);
-        RT_BACK_MODULE.setWheelRotation(135.0, 0.0);
-
-        pwr *= 0.6;
+        LT_FRNT_MODULE.setWheelAngle(-45.0, 0.0);
+        LT_BACK_MODULE.setWheelAngle(45.0, 0.0);
+        RT_FRNT_MODULE.setWheelAngle(-135.0, 0.0);
+        RT_BACK_MODULE.setWheelAngle(135.0, 0.0);
 
         LT_FRNT_MODULE.setDrivePower(pwr);
         LT_BACK_MODULE.setDrivePower(pwr);
@@ -95,52 +95,52 @@ public class CatzDrivetrain
         RT_BACK_MODULE.setDrivePower(pwr);
     }
 
-    public void translateTurn(double direction, double translatePower, double turnPower)
+    public void translateTurn(double joystickAngle, double translatePower, double turnPercentage)
     {
         //how far wheels turn determined by how far joystick is pushed (max of 45 degrees)
-        double turnAngle = turnPower * -45.0;
+        double turnAngle = turnPercentage * -45.0;
 
         double gyroAngle = getGyroAngle();
 
-        // if directed towards front of robot
-        if(Math.abs(closestAngle(direction, 0.0 - gyroAngle)) <= 45.0)
+        if(Math.abs(closestAngle(joystickAngle, 0.0 - gyroAngle)) <= 45.0)
         {
+            // if directed towards front of robot
             front = 1.0;
-            LT_FRNT_MODULE.setWheelRotation(direction + turnAngle, gyroAngle);
-            RT_FRNT_MODULE.setWheelRotation(direction + turnAngle, gyroAngle);
+            LT_FRNT_MODULE.setWheelAngle(joystickAngle + turnAngle, gyroAngle);
+            RT_FRNT_MODULE.setWheelAngle(joystickAngle + turnAngle, gyroAngle);
 
-            LT_BACK_MODULE.setWheelRotation(direction - turnAngle, gyroAngle);
-            RT_BACK_MODULE.setWheelRotation(direction - turnAngle, gyroAngle);
+            LT_BACK_MODULE.setWheelAngle(joystickAngle - turnAngle, gyroAngle);
+            RT_BACK_MODULE.setWheelAngle(joystickAngle - turnAngle, gyroAngle);
         }
-        // if directed towards left of robot
-        else if(Math.abs(closestAngle(direction, 90.0 - gyroAngle)) < 45.0)
+        else if(Math.abs(closestAngle(joystickAngle, 90.0 - gyroAngle)) < 45.0)
         {
+            // if directed towards left of robot
             front = 2.0;
-            LT_FRNT_MODULE.setWheelRotation(direction + turnAngle, gyroAngle);
-            LT_BACK_MODULE.setWheelRotation(direction + turnAngle, gyroAngle);
+            LT_FRNT_MODULE.setWheelAngle(joystickAngle + turnAngle, gyroAngle);
+            LT_BACK_MODULE.setWheelAngle(joystickAngle + turnAngle, gyroAngle);
 
-            RT_FRNT_MODULE.setWheelRotation(direction - turnAngle, gyroAngle);
-            RT_BACK_MODULE.setWheelRotation(direction - turnAngle, gyroAngle);
+            RT_FRNT_MODULE.setWheelAngle(joystickAngle - turnAngle, gyroAngle);
+            RT_BACK_MODULE.setWheelAngle(joystickAngle - turnAngle, gyroAngle);
         }
-        // if directed towards back of robot
-        else if(Math.abs(closestAngle(direction, 180.0 - gyroAngle)) <= 45.0)
+        else if(Math.abs(closestAngle(joystickAngle, 180.0 - gyroAngle)) <= 45.0)
         {
+            // if directed towards back of robot
             front = 3.0;
-            LT_BACK_MODULE.setWheelRotation(direction + turnAngle, gyroAngle);
-            RT_BACK_MODULE.setWheelRotation(direction + turnAngle, gyroAngle);
+            LT_BACK_MODULE.setWheelAngle(joystickAngle + turnAngle, gyroAngle);
+            RT_BACK_MODULE.setWheelAngle(joystickAngle + turnAngle, gyroAngle);
 
-            LT_FRNT_MODULE.setWheelRotation(direction - turnAngle, gyroAngle);
-            RT_FRNT_MODULE.setWheelRotation(direction - turnAngle, gyroAngle);
+            LT_FRNT_MODULE.setWheelAngle(joystickAngle - turnAngle, gyroAngle);
+            RT_FRNT_MODULE.setWheelAngle(joystickAngle - turnAngle, gyroAngle);
         }
-        // if directed towards right of robot
-        else if(Math.abs(closestAngle(direction, -90.0 - gyroAngle)) < 45.0)
+        else if(Math.abs(closestAngle(joystickAngle, -90.0 - gyroAngle)) < 45.0)
         {
+            // if directed towards right of robot
             front = 4.0;
-            RT_FRNT_MODULE.setWheelRotation(direction + turnAngle, gyroAngle);
-            RT_BACK_MODULE.setWheelRotation(direction + turnAngle, gyroAngle);
+            RT_FRNT_MODULE.setWheelAngle(joystickAngle + turnAngle, gyroAngle);
+            RT_BACK_MODULE.setWheelAngle(joystickAngle + turnAngle, gyroAngle);
 
-            LT_FRNT_MODULE.setWheelRotation(direction - turnAngle, gyroAngle);
-            LT_BACK_MODULE.setWheelRotation(direction - turnAngle, gyroAngle);
+            LT_FRNT_MODULE.setWheelAngle(joystickAngle - turnAngle, gyroAngle);
+            LT_BACK_MODULE.setWheelAngle(joystickAngle - turnAngle, gyroAngle);
         }
 
 
@@ -150,23 +150,23 @@ public class CatzDrivetrain
         RT_BACK_MODULE.setDrivePower(translatePower);
     }
 
-    public double closestAngle(double a, double b)
+    public double closestAngle(double startAngle, double targetAngle)
     {
         // get direction
-        double dir = b % 360.0 - a % 360.0;
+        double error = targetAngle % 360.0 - startAngle % 360.0;
 
         // convert from -360 to 360 to -180 to 180
-        if (Math.abs(dir) > 180.0)
+        if (Math.abs(error) > 180.0)
         {
-                dir = -(Math.signum(dir) * 360.0) + dir;
-                //closest angle shouldn't be more than 180 degrees. If it is, use other direction
-                if(dir > 180.0)
-                {
-                    dir -= 360;
-                }
+            error = -(Math.signum(error) * 360.0) + error;
+            //closest angle shouldn't be more than 180 degrees. If it is, use other direction
+            if(error > 180.0)
+            {
+                error -= 360;
+            }
         }
 
-        return dir;
+        return error;
     }
 
     public void dataCollection()
