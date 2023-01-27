@@ -1,11 +1,13 @@
 package frc.Mechanisms;
 
-import com.kauailabs.navx.frc.AHRS;
-
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.DataLogger.CatzLog;
 import frc.DataLogger.DataCollection;
 import frc.robot.Robot;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+import com.kauailabs.navx.frc.AHRS;
+
 
 public class CatzDrivetrain 
 {
@@ -15,6 +17,8 @@ public class CatzDrivetrain
     private final CatzSwerveModule LT_BACK_MODULE;
 
     private AHRS navX;
+
+    private final double notFieldRelative = 0.0;
 
     private final int LT_FRNT_DRIVE_ID = 1;
     private final int LT_BACK_DRIVE_ID = 3;
@@ -31,15 +35,17 @@ public class CatzDrivetrain
     private final int RT_BACK_ENC_PORT = 7;
     private final int RT_FRNT_ENC_PORT = 8;
 
-    private double LT_FRNT_OFFSET = 0.0055;
-    private double LT_BACK_OFFSET = 0.3592;
-    private double RT_BACK_OFFSET = 0.0668;
-    private double RT_FRNT_OFFSET = 0.6513;
+    private final double LT_FRNT_OFFSET = 0.0055;
+    private final double LT_BACK_OFFSET = 0.3592;
+    private final double RT_BACK_OFFSET = 0.0668;
+    private final double RT_FRNT_OFFSET = 0.6513;
+    
+    //Data collection
+    public CatzLog data;
 
+    public double dataJoystickAngle;
     private double front;
 
-    public CatzLog data;
-    public double dataJoystickAngle;
 
     public CatzDrivetrain()
     {
@@ -68,6 +74,11 @@ public class CatzDrivetrain
         RT_BACK_MODULE.initializeOffset();
     }
 
+    public void zeroGyro()
+    {
+        navX.setAngleAdjustment(-navX.getYaw());
+    }
+
     public void drive(double joystickAngle, double joystickPower)
     {
         double gyroAngle = getGyroAngle();
@@ -84,10 +95,10 @@ public class CatzDrivetrain
 
     public void rotateInPlace(double pwr)
     {
-        LT_FRNT_MODULE.setWheelAngle(-45.0, 0.0);
-        LT_BACK_MODULE.setWheelAngle(45.0, 0.0);
-        RT_FRNT_MODULE.setWheelAngle(-135.0, 0.0);
-        RT_BACK_MODULE.setWheelAngle(135.0, 0.0);
+        LT_FRNT_MODULE.setWheelAngle(-45.0, notFieldRelative);
+        LT_BACK_MODULE.setWheelAngle(45.0, notFieldRelative);
+        RT_FRNT_MODULE.setWheelAngle(-135.0, notFieldRelative);
+        RT_BACK_MODULE.setWheelAngle(135.0, notFieldRelative);
 
         LT_FRNT_MODULE.setDrivePower(pwr);
         LT_BACK_MODULE.setDrivePower(pwr);

@@ -68,17 +68,13 @@ public class CatzSwerveModule
 
         wheelOffset = offset;
 
+        //for shuffleboard
         motorID = steerMotorID;
     }
+
     public void initializeOffset()
     {
         wheelOffset = getEncValue();
-    }
-    public void updateShuffleboard()
-    {
-        SmartDashboard.putNumber(motorID + " Mag Encoder", magEnc.get() );//* 360.0);
-        SmartDashboard.putNumber(motorID + " Wheel Angle", (currentAngle));
-        //SmartDashboard.putBoolean(motorID + " Flipped", driveDirectionFlipped);
     }
 
     public void resetMagEnc()
@@ -158,16 +154,26 @@ public class CatzSwerveModule
     {
         return magEnc.get();
     }
+    
     public double getAngle()
     {
         return currentAngle;
     }
+
     public double getError()
     {
         return angleError;
     }
+
     public double getFlipError()
     {
         return flippedAngleError;
+    }
+
+    public void updateShuffleboard()
+    {
+        SmartDashboard.putNumber(motorID + " Mag Encoder", magEnc.get() );//* 360.0);
+        SmartDashboard.putNumber(motorID + " Wheel Angle", (currentAngle));
+        //SmartDashboard.putBoolean(motorID + " Flipped", driveDirectionFlipped);
     }
 }

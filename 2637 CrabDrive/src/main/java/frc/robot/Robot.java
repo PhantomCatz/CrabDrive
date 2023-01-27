@@ -27,9 +27,6 @@ public class Robot extends TimedRobot {
   public static DataCollection dataCollection;
   public static Timer currentTime;
   public ArrayList<CatzLog> dataArrayList;
-  
-
-
 
   private XboxController xboxDrv;
   private double steerAngle = 0.0;
@@ -133,6 +130,11 @@ public class Robot extends TimedRobot {
     {
       drivetrain.setSteerPower(0.0);
       drivetrain.setDrivePower(0.0);
+    }
+
+    if(xboxDrv.getStartButtonPressed())
+    {
+      drivetrain.zeroGyro();
     }
   }
 
