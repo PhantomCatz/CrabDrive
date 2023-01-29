@@ -6,6 +6,8 @@ package frc.robot;
 
 import java.util.ArrayList;
 
+import com.kauailabs.navx.frc.AHRS;
+
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
@@ -23,6 +25,8 @@ import frc.Mechanisms.CatzDrivetrain;
 public class Robot extends TimedRobot {
   
   public CatzDrivetrain drivetrain;
+
+  private AHRS navX;
   
   public static DataCollection dataCollection;
   public static Timer currentTime;
@@ -32,6 +36,7 @@ public class Robot extends TimedRobot {
   private double steerAngle = 0.0;
   private double drivePower = 0.0;
   private double turnPower = 0.0;
+  private double gyroAngle = 0.0;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -44,6 +49,10 @@ public class Robot extends TimedRobot {
 
     drivetrain = new CatzDrivetrain();
     dataCollection = new DataCollection();
+
+    navX = new AHRS();
+    navX.reset();
+    navX.setAngleAdjustment(-navX.getYaw());
 
     dataArrayList = new ArrayList<CatzLog>();
     dataCollection.dataCollectionInit(dataArrayList);
@@ -63,6 +72,7 @@ public class Robot extends TimedRobot {
   public void robotPeriodic()
   {
     drivetrain.updateShuffleboard();
+    SmartDashboard.putNumber("NavX", navX.getAngle());
     SmartDashboard.putNumber("Joystick", steerAngle);
 
     //drivetrain.testAngle();
@@ -108,16 +118,17 @@ public class Robot extends TimedRobot {
     steerAngle = calcJoystickAngle(xboxDrv.getLeftX(), xboxDrv.getLeftY());
     drivePower = calcJoystickPower(xboxDrv.getLeftX(), xboxDrv.getLeftY());
     turnPower = xboxDrv.getRightX();
+    gyroAngle = getGyroAngle();
 
     if(drivePower >= 0.1)
     {
       if(Math.abs(turnPower) >= 0.1)
       {
-        drivetrain.translateTurn(steerAngle, drivePower, turnPower);
+        drivetrain.translateTurn(steerAngle, drivePower, turnPower, gyroAngle);
       }
       else
       {
-        drivetrain.drive(steerAngle, drivePower);
+        drivetrain.drive(steerAngle, drivePower, gyroAngle);
       }
       drivetrain.dataCollection();
     }
@@ -134,7 +145,7 @@ public class Robot extends TimedRobot {
 
     if(xboxDrv.getStartButtonPressed())
     {
-      drivetrain.zeroGyro();
+      zeroGyro();
     }
   }
 
@@ -169,7 +180,7 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit()
   {
-    drivetrain.initializeOffsets();
+    drivetrain.initializeOffsets(navX);
   }
 
   /** This function is called periodically during test mode. */
@@ -219,5 +230,15 @@ public class Robot extends TimedRobot {
     public double calcJoystickPower(double xJoy, double yJoy)
     {
       return (Math.sqrt(Math.pow(xJoy, 2) + Math.pow(yJoy, 2)));
+    }
+
+    public void zeroGyro()
+    {
+        navX.setAngleAdjustment(-navX.getYaw());
+    }
+
+    public double getGyroAngle()
+    {
+        return navX.getAngle();
     }
 }

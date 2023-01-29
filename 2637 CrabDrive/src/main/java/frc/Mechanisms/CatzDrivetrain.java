@@ -16,8 +16,6 @@ public class CatzDrivetrain
     private final CatzSwerveModule LT_FRNT_MODULE;
     private final CatzSwerveModule LT_BACK_MODULE;
 
-    private AHRS navX;
-
     private final double notFieldRelative = 0.0;
 
     private final int LT_FRNT_DRIVE_ID = 1;
@@ -53,10 +51,6 @@ public class CatzDrivetrain
         LT_BACK_MODULE = new CatzSwerveModule(LT_BACK_DRIVE_ID, LT_BACK_STEER_ID, LT_BACK_ENC_PORT, LT_BACK_OFFSET);
         RT_FRNT_MODULE = new CatzSwerveModule(RT_FRNT_DRIVE_ID, RT_FRNT_STEER_ID, RT_FRNT_ENC_PORT, RT_FRNT_OFFSET);
         RT_BACK_MODULE = new CatzSwerveModule(RT_BACK_DRIVE_ID, RT_BACK_STEER_ID, RT_BACK_ENC_PORT, RT_BACK_OFFSET);
-
-        navX = new AHRS();
-        navX.reset();
-        navX.setAngleAdjustment(-navX.getYaw());
  
         LT_FRNT_MODULE.resetMagEnc();
         LT_BACK_MODULE.resetMagEnc();
@@ -64,7 +58,7 @@ public class CatzDrivetrain
         RT_BACK_MODULE.resetMagEnc();
     }
 
-    public void initializeOffsets()
+    public void initializeOffsets(AHRS navX)
     {
         navX.setAngleAdjustment(-navX.getYaw());
 
@@ -74,14 +68,9 @@ public class CatzDrivetrain
         RT_BACK_MODULE.initializeOffset();
     }
 
-    public void zeroGyro()
+    public void drive(double joystickAngle, double joystickPower, double gyroAngle)
     {
-        navX.setAngleAdjustment(-navX.getYaw());
-    }
-
-    public void drive(double joystickAngle, double joystickPower)
-    {
-        double gyroAngle = getGyroAngle();
+        SmartDashboard.putNumber("GyroAngle?", gyroAngle);
 
         LT_FRNT_MODULE.setWheelAngle(joystickAngle, gyroAngle);
         LT_BACK_MODULE.setWheelAngle(joystickAngle, gyroAngle);
@@ -106,12 +95,10 @@ public class CatzDrivetrain
         RT_BACK_MODULE.setDrivePower(pwr);
     }
 
-    public void translateTurn(double joystickAngle, double translatePower, double turnPercentage)
+    public void translateTurn(double joystickAngle, double translatePower, double turnPercentage, double gyroAngle)
     {
         //how far wheels turn determined by how far joystick is pushed (max of 45 degrees)
         double turnAngle = turnPercentage * -45.0;
-
-        double gyroAngle = getGyroAngle();
 
         if(Math.abs(closestAngle(joystickAngle, 0.0 - gyroAngle)) <= 45.0)
         {
@@ -190,11 +177,6 @@ public class CatzDrivetrain
         Robot.dataCollection.logData.add(data);
     }
 
-    public double getGyroAngle()
-    {
-        return navX.getAngle();
-    }
-
     public void setSteerPower(double pwr)
     {
         LT_FRNT_MODULE.setSteerPower(pwr);
@@ -228,8 +210,6 @@ public class CatzDrivetrain
 
     public void updateShuffleboard()
     {
-        SmartDashboard.putNumber("NavX", navX.getAngle());
-
         LT_FRNT_MODULE.updateShuffleboard();
         LT_BACK_MODULE.updateShuffleboard();
         RT_FRNT_MODULE.updateShuffleboard();
