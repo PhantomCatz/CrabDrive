@@ -89,8 +89,9 @@ public class Robot extends TimedRobot {
    * chooser code above as well.
    */
   @Override
-  public void autonomousInit() {
-
+  public void autonomousInit()
+  {
+    drivetrain.setBrakeMode();
 
   }
 
@@ -155,6 +156,7 @@ public class Robot extends TimedRobot {
   {
     currentTime.stop();
     drivetrain.setCoastMode();
+    
     if(dataCollection.logDataValues == true)
     {
       dataCollection.stopDataCollection();

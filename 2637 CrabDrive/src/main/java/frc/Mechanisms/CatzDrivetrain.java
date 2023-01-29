@@ -70,8 +70,6 @@ public class CatzDrivetrain
 
     public void drive(double joystickAngle, double joystickPower, double gyroAngle)
     {
-        SmartDashboard.putNumber("GyroAngle?", gyroAngle);
-
         LT_FRNT_MODULE.setWheelAngle(joystickAngle, gyroAngle);
         LT_BACK_MODULE.setWheelAngle(joystickAngle, gyroAngle);
         RT_FRNT_MODULE.setWheelAngle(joystickAngle, gyroAngle);

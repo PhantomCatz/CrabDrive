@@ -58,7 +58,7 @@ public class CatzSwerveModule
         STEER_MOTOR.configSupplyCurrentLimit(swerveModuleCurrentLimit);
         DRIVE_MOTOR.configSupplyCurrentLimit(swerveModuleCurrentLimit);
 
-        DRIVE_MOTOR.setNeutralMode(NeutralMode.Brake);
+        DRIVE_MOTOR.setNeutralMode(NeutralMode.Coast);
         STEER_MOTOR.setNeutralMode(NeutralMode.Coast);
         
         MagEncPWMInput = new DigitalInput(encoderDIOChannel);
@@ -84,10 +84,12 @@ public class CatzSwerveModule
 
     public void setBrakeMode()
     {
+        DRIVE_MOTOR.setNeutralMode(NeutralMode.Brake);
         STEER_MOTOR.setNeutralMode(NeutralMode.Brake);
     }
     public void setCoastMode()
     {
+        DRIVE_MOTOR.setNeutralMode(NeutralMode.Coast);
         STEER_MOTOR.setNeutralMode(NeutralMode.Coast);
     }
 
