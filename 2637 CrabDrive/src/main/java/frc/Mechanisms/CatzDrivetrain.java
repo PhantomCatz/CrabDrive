@@ -6,6 +6,8 @@ import frc.robot.Robot;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import javax.xml.crypto.Data;
+
 import com.kauailabs.navx.frc.AHRS;
 
 
@@ -167,12 +169,24 @@ public class CatzDrivetrain
 
     public void dataCollection()
     {
-        data = new CatzLog(Robot.currentTime.get(), dataJoystickAngle,
-                           LT_FRNT_MODULE.getAngle(), LT_FRNT_MODULE.getError(), LT_FRNT_MODULE.getFlipError(),
-                           LT_BACK_MODULE.getAngle(), LT_BACK_MODULE.getError(), LT_BACK_MODULE.getFlipError(),
-                           RT_FRNT_MODULE.getAngle(), RT_FRNT_MODULE.getError(), RT_FRNT_MODULE.getFlipError(),
-                           RT_BACK_MODULE.getAngle(), RT_BACK_MODULE.getError(), RT_BACK_MODULE.getFlipError(), front, DataCollection.boolData);  
-        Robot.dataCollection.logData.add(data);
+        if(DataCollection.chosenDataID.getSelected() == DataCollection.LOG_ID_SWERVE_STEERING)
+        {
+            data = new CatzLog(Robot.currentTime.get(), dataJoystickAngle,
+                            LT_FRNT_MODULE.getAngle(), LT_FRNT_MODULE.getError(), LT_FRNT_MODULE.getFlipError(),
+                            LT_BACK_MODULE.getAngle(), LT_BACK_MODULE.getError(), LT_BACK_MODULE.getFlipError(),
+                            RT_FRNT_MODULE.getAngle(), RT_FRNT_MODULE.getError(), RT_FRNT_MODULE.getFlipError(),
+                            RT_BACK_MODULE.getAngle(), RT_BACK_MODULE.getError(), RT_BACK_MODULE.getFlipError(), front, DataCollection.boolData);  
+            Robot.dataCollection.logData.add(data);
+        }
+        else if(DataCollection.chosenDataID.getSelected() == DataCollection.LOG_ID_SWERVE_DRIVING)
+        {
+            data = new CatzLog(Robot.currentTime.get(), dataJoystickAngle,
+                            LT_FRNT_MODULE.getAngle(), LT_FRNT_MODULE.getDrvDistance(), LT_FRNT_MODULE.getDrvVelocity(),
+                            LT_BACK_MODULE.getAngle(), LT_BACK_MODULE.getDrvDistance(), LT_BACK_MODULE.getDrvVelocity(),
+                            RT_FRNT_MODULE.getAngle(), RT_FRNT_MODULE.getDrvDistance(), RT_FRNT_MODULE.getDrvVelocity(),
+                            RT_BACK_MODULE.getAngle(), RT_BACK_MODULE.getDrvDistance(), RT_BACK_MODULE.getDrvVelocity(), LT_FRNT_MODULE.getError(), DataCollection.boolData);  
+            Robot.dataCollection.logData.add(data);
+        }
     }
 
     public void setSteerPower(double pwr)

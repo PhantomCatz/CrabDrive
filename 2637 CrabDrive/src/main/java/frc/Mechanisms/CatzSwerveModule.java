@@ -58,7 +58,7 @@ public class CatzSwerveModule
         STEER_MOTOR.configSupplyCurrentLimit(swerveModuleCurrentLimit);
         DRIVE_MOTOR.configSupplyCurrentLimit(swerveModuleCurrentLimit);
 
-        DRIVE_MOTOR.setNeutralMode(NeutralMode.Coast);
+        DRIVE_MOTOR.setNeutralMode(NeutralMode.Brake);
         STEER_MOTOR.setNeutralMode(NeutralMode.Coast);
         
         MagEncPWMInput = new DigitalInput(encoderDIOChannel);
@@ -84,12 +84,10 @@ public class CatzSwerveModule
 
     public void setBrakeMode()
     {
-        DRIVE_MOTOR.setNeutralMode(NeutralMode.Brake);
         STEER_MOTOR.setNeutralMode(NeutralMode.Brake);
     }
     public void setCoastMode()
     {
-        DRIVE_MOTOR.setNeutralMode(NeutralMode.Coast);
         STEER_MOTOR.setNeutralMode(NeutralMode.Coast);
     }
 
@@ -155,6 +153,16 @@ public class CatzSwerveModule
     public double getEncValue()
     {
         return magEnc.get();
+    }
+
+    public double getDrvDistance()
+    {
+        return DRIVE_MOTOR.getSelectedSensorPosition();
+    }
+
+    public double getDrvVelocity()
+    {
+        return DRIVE_MOTOR.getSelectedSensorVelocity();
     }
     
     public double getAngle()

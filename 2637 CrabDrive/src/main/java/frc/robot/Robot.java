@@ -97,19 +97,23 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during autonomous. */
   @Override
-  public void autonomousPeriodic() {
-    
+  public void autonomousPeriodic()
+  {
+    gyroAngle = getGyroAngle();
+    drivetrain.drive(0.0, 0.5, gyroAngle);
+    drivetrain.dataCollection();  
   }
 
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() 
   {
+    drivetrain.setBrakeMode();
+
     currentTime.reset();
     currentTime.start();
-    dataCollection.setLogDataID(dataCollection.LOG_ID_SWERVE_MODULE);
+
     dataCollection.startDataCollection();
-    drivetrain.setBrakeMode();
   }
 
   /** This function is called periodically during operator control. */
@@ -174,7 +178,8 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically when disabled. */
   @Override
-  public void disabledPeriodic() {
+  public void disabledPeriodic()
+  {
 
   }
 

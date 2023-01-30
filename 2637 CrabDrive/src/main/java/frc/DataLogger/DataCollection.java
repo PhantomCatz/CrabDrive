@@ -39,13 +39,15 @@ public class DataCollection
 
     private final double LOG_SAMPLE_RATE = 0.1;
 
-    public static final int LOG_ID_NONE               = 0;
-    public static final int LOG_ID_SWERVE_MODULE      = 1;
-
+    public static final int LOG_ID_NONE            = 0;
+    public static final int LOG_ID_SWERVE_STEERING = 1;
+    public static final int LOG_ID_SWERVE_DRIVING  = 2;
 
     public boolean validLogID = true;
 
-    private final String LOG_HDR_SWERVE_MOD = "time,target,lf-angle,lf-err,lf-flip-err,lb-angle,lb-err,lb-flip-err,rf-angle,rf-err,rf-flip-err,rb-angle,rb-err,rb-flip-err";
+    private final String LOG_HDR_SWERVE_STEERING = "time,target,lf-angle,lf-err,lf-flip-err,lb-angle,lb-err,lb-flip-err,rf-angle,rf-err,rf-flip-err,rb-angle,rb-err,rb-flip-err";
+    private final String LOG_HDR_SWERVE_DRIVING = "time,target,lf-angle,lf-dist,lf-vel,lb-angle,lb-dist,lb-vel,rf-angle,rf-dist,rf-vel,rb-angle,rb-dist,rb-vel,lf-error";
+
     public String logStr;
 
     public static final SendableChooser<Integer> chosenDataID = new SendableChooser<>();
@@ -120,7 +122,8 @@ public class DataCollection
     public void dataCollectionShuffleboard()
     {
         chosenDataID.setDefaultOption("None",        LOG_ID_NONE);
-        chosenDataID.addOption("Swerve Module",      LOG_ID_SWERVE_MODULE);
+        chosenDataID.addOption("Swerve Module", LOG_ID_SWERVE_STEERING);
+        chosenDataID.addOption("Swerve Module", LOG_ID_SWERVE_DRIVING);
 
         SmartDashboard.putData("Data Collection", chosenDataID);
     }
@@ -135,7 +138,7 @@ public class DataCollection
         logDataValues = false; 
     }
 
-    public void  collectData(final int dataID)
+    public void collectData(final int dataID)
     {
         CatzLog data;
         double data1 = -999.0;
@@ -159,9 +162,10 @@ public class DataCollection
         //define each data
         switch (dataID) 
         {
-            case LOG_ID_SWERVE_MODULE :    
+            case LOG_ID_SWERVE_STEERING :    
                 break;
-           
+            case LOG_ID_SWERVE_DRIVING :    
+                break;
 
 
             default :
@@ -187,8 +191,11 @@ public class DataCollection
     {
         switch (logDataID)
         {
-            case LOG_ID_SWERVE_MODULE:
-                pw.printf(LOG_HDR_SWERVE_MOD);
+            case LOG_ID_SWERVE_STEERING:
+                pw.printf(LOG_HDR_SWERVE_STEERING);
+                break;
+            case LOG_ID_SWERVE_DRIVING:
+                pw.printf(LOG_HDR_SWERVE_DRIVING);
                 break;
             default :
                 pw.printf("Invalid Log Data ID");            
