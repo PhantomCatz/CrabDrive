@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.DataLogger.CatzLog;
 import frc.DataLogger.DataCollection;
 import frc.Mechanisms.CatzDrivetrain;
+import frc.Mechanisms.CatzAprilTag;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -24,6 +25,7 @@ import frc.Mechanisms.CatzDrivetrain;
  */
 public class Robot extends TimedRobot {
   
+  public static CatzAprilTag aprilTag;
   public CatzDrivetrain drivetrain;
 
   private AHRS navX;
@@ -38,6 +40,11 @@ public class Robot extends TimedRobot {
   private double turnPower = 0.0;
   private double gyroAngle = 0.0;
 
+  public double realTimeOffset = 0.0;
+
+  private final double RELIABLE_APRILTAG_DIS = 72.0;
+  private final double OFFSET_INCREMENT = 1.0;
+
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -49,10 +56,11 @@ public class Robot extends TimedRobot {
 
     drivetrain = new CatzDrivetrain();
     dataCollection = new DataCollection();
+    aprilTag = new CatzAprilTag();
 
     navX = new AHRS();
     navX.reset();
-    navX.setAngleAdjustment(-navX.getYaw());
+    zeroGyro();
 
     dataArrayList = new ArrayList<CatzLog>();
     dataCollection.dataCollectionInit(dataArrayList);
@@ -74,6 +82,13 @@ public class Robot extends TimedRobot {
     drivetrain.updateShuffleboard();
     SmartDashboard.putNumber("NavX", navX.getAngle());
     SmartDashboard.putNumber("Joystick", steerAngle);
+
+    calibrateOffset();
+    aprilTag.positionUpdate();
+    aprilTag.smartDashboardAprilTag();
+    SmartDashboard.putNumber("True NavX", navX.getYaw());
+    SmartDashboard.putNumber("Offsetted angle", getGyroAngle());
+    SmartDashboard.putNumber("realTimeOffset", realTimeOffset);
 
     //drivetrain.testAngle();
   }
@@ -187,7 +202,7 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit()
   {
-    drivetrain.initializeOffsets(navX);
+    realTimeOffset = drivetrain.initializeOffsets(navX);
   }
 
   /** This function is called periodically during test mode. */
@@ -241,11 +256,45 @@ public class Robot extends TimedRobot {
 
     public void zeroGyro()
     {
-        navX.setAngleAdjustment(-navX.getYaw());
+      realTimeOffset = -navX.getYaw();
+
     }
 
     public double getGyroAngle()
     {
-        return navX.getAngle();
+      if(Math.abs(navX.getYaw() + realTimeOffset) >= 180)
+      {
+        return -Math.signum(navX.getYaw() + realTimeOffset)*(180.0 - Math.abs((navX.getYaw() + realTimeOffset) % 180.0));
+      }else
+      {
+        return navX.getYaw() + realTimeOffset;
+      }
+
+    }
+
+    public void calibrateOffset()
+    {
+      if(aprilTag.getBotPose()[5] != 999.0)
+      {
+        double navXAngleError = getGyroAngle() + aprilTag.getBotPose()[5];
+        if(aprilTag.getDisToWall() <= RELIABLE_APRILTAG_DIS)
+        {
+          if(Math.abs(navXAngleError) >= 2.0)
+          {
+            if(navXAngleError >= 180.0)
+            {
+              realTimeOffset += Math.signum(navXAngleError) * 1.0;
+            }
+            else
+            {
+              realTimeOffset -= Math.signum(navXAngleError) * 1.0;
+            }
+            if(Math.abs(realTimeOffset) >= 180)
+            {
+              realTimeOffset = -Math.signum(realTimeOffset)*(180.0 - Math.abs(realTimeOffset % 180.0));
+            }
+          }
+        }
+      }
     }
 }

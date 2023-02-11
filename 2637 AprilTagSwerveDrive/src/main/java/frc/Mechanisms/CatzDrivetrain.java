@@ -60,14 +60,14 @@ public class CatzDrivetrain
         RT_BACK_MODULE.resetMagEnc();
     }
 
-    public void initializeOffsets(AHRS navX)
+    public double initializeOffsets(AHRS navX)
     {
-        navX.setAngleAdjustment(-navX.getYaw());
-
         LT_FRNT_MODULE.initializeOffset();
         LT_BACK_MODULE.initializeOffset();
         RT_FRNT_MODULE.initializeOffset();
         RT_BACK_MODULE.initializeOffset();
+
+        return -navX.getYaw();
     }
 
     public void drive(double joystickAngle, double joystickPower, double gyroAngle)
